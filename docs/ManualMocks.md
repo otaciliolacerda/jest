@@ -141,9 +141,8 @@ If some code uses a method which JSDOM (the DOM implementation used by Jest) has
 In this case, mocking `matchMedia` in the test file should solve the issue:
 
 ```js
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation(query => ({
+global.matchMedia = global.matchMedia || function () {
+  return {
     matches: false,
     media: query,
     onchange: null,
@@ -152,8 +151,8 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener: jest.fn(),
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
-  })),
-});
+  };
+};
 ```
 
 This works if `window.matchMedia()` is used in a function (or method) which is invoked in the test. If `window.matchMedia()` is executed directly in the tested file, Jest reports the same error. In this case, the solution is to move the manual mock into a separate file and include this one in the test **before** the tested file:
